@@ -18,22 +18,30 @@ FROM ubuntu:bionic
 RUN \
  apt-get update \
  && apt-get install -y -q curl gnupg \
- && curl -sSL 'http://p80.pool.sks-keyservers.net/pks/lookup?op=get&search=0x8AA7AF1F1091A5FD' | apt-key add -  \
+ && curl -sSL 'http://pgp.surfnet.nl/pks/lookup?op=get&search=0x8AA7AF1F1091A5FD' | apt-key add -  \
  && echo 'deb [arch=amd64] http://repo.sawtooth.me/ubuntu/chime/stable bionic universe' >> /etc/apt/sources.list \
  && apt-get update
 
 RUN apt-get install -y --allow-unauthenticated -q \
+    sudo \
     curl \
     python3-pip \
     python3-sawtooth-cli \
     python3-sawtooth-sdk \
-    python3-sawtooth-rest-api
+    python3-sawtooth-rest-api \
+    python3-dev \
+    libpq-dev
 
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
-    && apt-get install -y nodejs npm
+RUN sudo curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash - \
+    && apt-get install -y aptitude \
+    && aptitude install -y nodejs npm
 
 RUN pip3 install \
-    aiohttp \
+    async-timeout \
+    charset-normalizer -U \
+    multidict \
+    yarl \
+    aiohttp==3.8.1 \
     aiopg \
     bcrypt \
     grpcio-tools \
@@ -43,6 +51,8 @@ RUN pip3 install \
     pycrypto \
     pylint \
     pycodestyle
+
+RUN pip3 install --upgrade protobuf
 
 WORKDIR /project/sawtooth-simple-supply
 

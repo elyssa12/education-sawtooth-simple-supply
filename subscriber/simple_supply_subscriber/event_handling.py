@@ -63,17 +63,18 @@ def _parse_new_block(events):
 
 
 def _resolve_if_forked(database, block_num, block_id):
-    existing_block = database.fetch_block(block_num)
-    if existing_block is not None:
-        if existing_block['block_id'] == block_id:
-            return True  # this block is a duplicate
-        LOGGER.info(
-            'Fork detected: replacing %s (%s) with %s (%s)',
-            existing_block['block_id'][:8],
-            existing_block['block_num'],
-            block_id[:8],
-            block_num)
-        database.drop_fork(block_num)
+    if block_num is not None:
+        existing_block = database.fetch_block(block_num)
+        if existing_block is not None:
+            if existing_block['block_id'] == block_id:
+                return True  # this block is a duplicate
+            LOGGER.info(
+                'Fork detected: replacing %s (%s) with %s (%s)',
+                existing_block['block_id'][:8],
+                existing_block['block_num'],
+                block_id[:8],
+                block_num)
+            database.drop_fork(block_num)
     return False
 
 

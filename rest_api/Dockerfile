@@ -18,23 +18,31 @@ FROM ubuntu:bionic
 RUN \
  apt-get update \
  && apt-get install -y -q curl gnupg \
- && curl -sSL 'http://p80.pool.sks-keyservers.net/pks/lookup?op=get&search=0x8AA7AF1F1091A5FD' | apt-key add -  \
+ && curl -sSL 'http://pgp.surfnet.nl/pks/lookup?op=get&search=0x8AA7AF1F1091A5FD' | apt-key add -  \
  && echo 'deb [arch=amd64] http://repo.sawtooth.me/ubuntu/chime/stable bionic universe' >> /etc/apt/sources.list \
  && apt-get update
 
 RUN apt-get install -y --allow-unauthenticated -q python3-grpcio-tools \
+    python3-grpcio-tools \
     python3-pip \
     python3-sawtooth-rest-api \
-    python3-sawtooth-sdk
+    python3-sawtooth-sdk \
+    python3-dev \
+    libpq-dev
 
 RUN pip3 install \
-    aiohttp \
+    async-timeout \
+    charset-normalizer -U \
+    multidict \
+    yarl \
+    aiohttp==3.8.1 \
     aiopg \
     bcrypt \
     itsdangerous \
     pycrypto \
     psycopg2-binary
-
+    
+RUN pip3 install --upgrade protobuf
 
 WORKDIR /project/sawtooth-simple-supply
 
