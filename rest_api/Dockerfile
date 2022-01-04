@@ -37,6 +37,8 @@ RUN pip3 install \
     yarl \
     aiohttp==3.8.1 \
     aiopg \
+    asyncio \
+    pyzmq \
     bcrypt \
     itsdangerous \
     pycrypto \

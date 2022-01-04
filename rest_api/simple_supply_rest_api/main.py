@@ -55,7 +55,7 @@ def parse_args(args):
     parser.add_argument(
         '--db-host',
         help='The host of the database',
-        default='localhost')
+        default='simple-supply-postgres')
     parser.add_argument(
         '--db-port',
         help='The port of the database',
@@ -76,7 +76,38 @@ def parse_args(args):
 
     return parser.parse_args(args)
 
+def make_app(loop, host, port, messenger, database):
+    app = web.Application()
+    # WARNING: UNSAFE KEY STORAGE
+    # In a production application these keys should be passed in more securely
+    app['aes_key'] = 'ffffffffffffffffffffffffffffffff'
+    app['secret_key'] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
 
+    messenger.open_validator_connection()
+
+    handler = RouteHandler(loop, messenger, database)
+
+    app.router.add_post('/authentication', handler.authenticate)
+
+    app.router.add_post('/agents', handler.create_agent)
+    app.router.add_get('/agents', handler.list_agents)
+    app.router.add_get('/agents/{agent_id}', handler.fetch_agent)
+
+    app.router.add_post('/records', handler.create_record)
+    app.router.add_get('/records', handler.list_records)
+    app.router.add_get('/records/{record_id}', handler.fetch_record)
+    app.router.add_post(
+        '/records/{record_id}/transfer', handler.transfer_record)
+    app.router.add_post('/records/{record_id}/update', handler.update_record)
+
+    LOGGER.info('Starting Simple Supply REST API on %s:%s', host, port)
+    web.run_app(
+        app,
+        host=host,
+        port=port,
+        access_log=LOGGER,
+        access_log_format='%r: %s status, %b size, in %Tf s')
+    
 def start_rest_api(host, port, messenger, database):
     loop = asyncio.get_event_loop()
     asyncio.ensure_future(database.connect())
@@ -114,8 +145,8 @@ def start_rest_api(host, port, messenger, database):
 
 
 def main():
-    loop = ZMQEventLoop()
-    asyncio.set_event_loop(loop)
+    zmq = ZMQEventLoop()
+    asyncio.set_event_loop(zmq)
 
     try:
         opts = parse_args(sys.argv[1:])
@@ -133,7 +164,7 @@ def main():
             opts.db_name,
             opts.db_user,
             opts.db_password,
-            loop)
+            zmq)
 
         try:
             host, port = opts.bind.split(":")
@@ -143,7 +174,7 @@ def main():
                   " host:port".format(opts.bind))
             sys.exit(1)
 
-        start_rest_api(host, port, messenger, database)
+        # start_rest_api(host, port, messenger, database)
     except Exception as err:  # pylint: disable=broad-except
         LOGGER.exception(err)
         sys.exit(1)

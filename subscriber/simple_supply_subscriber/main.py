@@ -40,7 +40,7 @@ def parse_args(args):
     database_parser.add_argument(
         '--db-host',
         help='The host of the database',
-        default='localhost')
+        default='simple-supply-postgres')
     database_parser.add_argument(
         '--db-port',
         help='The port of the database',

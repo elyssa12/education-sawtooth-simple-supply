@@ -69,7 +69,8 @@ class Database(object):
     def disconnect(self):
         """Closes connection to the database
         """
-        self._conn.close()
+        if self._conn is not None:
+            self._conn.close()
 
     async def create_auth_entry(self,
                                 public_key,
